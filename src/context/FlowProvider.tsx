@@ -1,5 +1,5 @@
 import React, { createContext, useState, ReactNode } from "react"
-import { getDefaultFlow } from "../components/Flow"
+import { getDefaultFlow } from "../constants/Default"
 
 export type Status =
   | "UPCOMING"

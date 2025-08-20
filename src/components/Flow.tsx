@@ -3,6 +3,8 @@ import { UserDetail } from './AuthWrapper';
 import { FlowContext, Status, Step, Flow, Content } from "../context/FlowProvider"
 import { fetchContentUrl, changeStepStatusUrl } from "../api/ApiEndpoints"
 import { CircularProgress } from "./CircularProgress";
+import Navbar from "./NavBar";
+import { getDefaultFlow } from "../constants/Default";
 
 export interface FlowProps {
   title?: string;
@@ -316,280 +318,6 @@ export function getComponentList(flow: Flow) {
   return componentList
 }
 
-export function getDefaultFlow(): Flow {
-  const rootStepId = "root-step-1";
-  const setupStepId = "setup-step-1";
-  const configStepId = "config-step-1";
-  const testingStepId = "testing-step-1";
-  const lastStepId = "deployment-step-1";
-  
-  // Child steps
-  const setupSubStep1 = "setup-substep-1";
-  const setupSubStep2 = "setup-substep-2";
-  const configSubStep1 = "config-substep-1";
-  const configSubStep2 = "config-substep-2";
-  const testingSubStep1 = "testing-substep-1";
-  const deploymentSubStep1 = "deployment-substep-1";
-
-  const defaultSteps: Step[] = [
-    // Root step
-    {
-      id: rootStepId,
-      type: "ROOT",
-      status: "DONE",
-      blocking_step_ids: [setupStepId],
-      contents: [
-        {
-          id: "content-root-1",
-          template_scope_id: "root-template",
-          display: "Getting Started",
-          content_type: "PRIMARY_TEXT"
-        },
-        {
-          id: "content-root-2",
-          template_scope_id: "root-template",
-          display: "Welcome to the BBPS integration process. This guide will walk you through setting up your integration step by step.",
-          content_type: "SECONDARY_TEXT"
-        }
-      ],
-      name: "Getting Started",
-      position: 1,
-      time_needed: "00:05:00"
-    },
-    // Setup step
-    {
-      id: setupStepId,
-      type: "MAIN",
-      status: "PENDING",
-      blocked_by_step_ids: [rootStepId],
-      blocking_step_ids: [configStepId],
-      child_step_ids: [setupSubStep1, setupSubStep2],
-      contents: [
-        {
-          id: "content-setup-1",
-          template_scope_id: "setup-template",
-          display: "Environment Setup",
-          content_type: "PRIMARY_TEXT"
-        }
-      ],
-      name: "Environment Setup",
-      position: 2,
-      time_needed: "00:15:00"
-    },
-    // Setup substeps
-    {
-      id: setupSubStep1,
-      type: "SUB",
-      status: "PENDING",
-      parent_step_id: setupStepId,
-      contents: [
-        {
-          id: "content-setup-sub1-1",
-          template_scope_id: "setup-sub-template",
-          display: "Install Dependencies",
-          content_type: "PRIMARY_TEXT"
-        },
-        {
-          id: "content-setup-sub1-2",
-          template_scope_id: "setup-sub-template",
-          display: "Install the required packages and dependencies for your BBPS integration. Run <code>npm install</code> to get started.",
-          content_type: "SECONDARY_TEXT"
-        }
-      ],
-      name: "Install Dependencies",
-      position: 1,
-      time_needed: "00:05:00"
-    },
-    {
-      id: setupSubStep2,
-      type: "SUB",
-      status: "PENDING",
-      parent_step_id: setupStepId,
-      contents: [
-        {
-          id: "content-setup-sub2-1",
-          template_scope_id: "setup-sub-template",
-          display: "Configure Environment Variables",
-          content_type: "PRIMARY_TEXT"
-        },
-        {
-          id: "content-setup-sub2-2",
-          template_scope_id: "setup-sub-template",
-          display: "Set up your environment variables including API keys, endpoints, and merchant configuration details.",
-          content_type: "SECONDARY_TEXT"
-        }
-      ],
-      name: "Configure Environment Variables",
-      position: 2,
-      time_needed: "00:10:00"
-    },
-    // Configuration step
-    {
-      id: configStepId,
-      type: "MAIN",
-      status: "UPCOMING",
-      blocked_by_step_ids: [setupStepId],
-      blocking_step_ids: [testingStepId],
-      child_step_ids: [configSubStep1, configSubStep2],
-      contents: [
-        {
-          id: "content-config-1",
-          template_scope_id: "config-template",
-          display: "API Configuration",
-          content_type: "PRIMARY_TEXT"
-        }
-      ],
-      name: "API Configuration",
-      position: 3,
-      time_needed: "00:20:00"
-    },
-    // Config substeps
-    {
-      id: configSubStep1,
-      type: "SUB",
-      status: "UPCOMING",
-      parent_step_id: configStepId,
-      contents: [
-        {
-          id: "content-config-sub1-1",
-          template_scope_id: "config-sub-template",
-          display: "Set up BBPS API Endpoints",
-          content_type: "PRIMARY_TEXT"
-        },
-        {
-          id: "content-config-sub1-2",
-          template_scope_id: "config-sub-template",
-          display: "Configure the BBPS API endpoints and authentication settings in your application.",
-          content_type: "SECONDARY_TEXT"
-        }
-      ],
-      name: "Set up BBPS API Endpoints",
-      position: 1,
-      time_needed: "00:10:00"
-    },
-    {
-      id: configSubStep2,
-      type: "SUB",
-      status: "UPCOMING",
-      parent_step_id: configStepId,
-      contents: [
-        {
-          id: "content-config-sub2-1",
-          template_scope_id: "config-sub-template",
-          display: "Configure Merchant Settings",
-          content_type: "PRIMARY_TEXT"
-        },
-        {
-          id: "content-config-sub2-2",
-          template_scope_id: "config-sub-template",
-          display: "Set up merchant-specific configurations including payment categories and billing settings.",
-          content_type: "SECONDARY_TEXT"
-        }
-      ],
-      name: "Configure Merchant Settings",
-      position: 2,
-      time_needed: "00:10:00"
-    },
-    // Testing step
-    {
-      id: testingStepId,
-      type: "MAIN",
-      status: "UPCOMING",
-      blocked_by_step_ids: [configStepId],
-      blocking_step_ids: [lastStepId],
-      child_step_ids: [testingSubStep1],
-      contents: [
-        {
-          id: "content-testing-1",
-          template_scope_id: "testing-template",
-          display: "Testing & Validation",
-          content_type: "PRIMARY_TEXT"
-        }
-      ],
-      name: "Testing & Validation",
-      position: 4,
-      time_needed: "00:25:00"
-    },
-    // Testing substep
-    {
-      id: testingSubStep1,
-      type: "SUB",
-      status: "UPCOMING",
-      parent_step_id: testingStepId,
-      contents: [
-        {
-          id: "content-testing-sub1-1",
-          template_scope_id: "testing-sub-template",
-          display: "Run Integration Tests",
-          content_type: "PRIMARY_TEXT"
-        },
-        {
-          id: "content-testing-sub1-2",
-          template_scope_id: "testing-sub-template",
-          display: "Execute comprehensive tests to validate your BBPS integration including payment processing and status updates.",
-          content_type: "SECONDARY_TEXT"
-        }
-      ],
-      name: "Run Integration Tests",
-      position: 1,
-      time_needed: "00:25:00"
-    },
-    // Deployment step
-    {
-      id: lastStepId,
-      type: "MAIN",
-      status: "UPCOMING",
-      blocked_by_step_ids: [testingStepId],
-      child_step_ids: [deploymentSubStep1],
-      contents: [
-        {
-          id: "content-deployment-1",
-          template_scope_id: "deployment-template",
-          display: "Go Live",
-          content_type: "PRIMARY_TEXT"
-        }
-      ],
-      name: "Go Live",
-      position: 5,
-      time_needed: "00:10:00"
-    },
-    // Deployment substep
-    {
-      id: deploymentSubStep1,
-      type: "SUB",
-      status: "UPCOMING",
-      parent_step_id: lastStepId,
-      contents: [
-        {
-          id: "content-deployment-sub1-1",
-          template_scope_id: "deployment-sub-template",
-          display: "Deploy to Production",
-          content_type: "PRIMARY_TEXT"
-        },
-        {
-          id: "content-deployment-sub1-2",
-          template_scope_id: "deployment-sub-template",
-          display: "Deploy your BBPS integration to production and monitor the initial transactions.",
-          content_type: "SECONDARY_TEXT"
-        }
-      ],
-      name: "Deploy to Production",
-      position: 1,
-      time_needed: "00:10:00"
-    }
-  ];
-
-  return {
-    id: "default-flow-1",
-    merchant_id: "default-merchant",
-    flow_id: "bbps-integration-flow",
-    scenario: "bbps-onboarding",
-    root_step_id: rootStepId,
-    last_step_id: lastStepId,
-    product_info_id: "bbps-product-info",
-    steps: defaultSteps
-  };
-}
 
 const MakeFlow: React.FC<FlowProps> = ({
   title = "Welcome to Flow",
@@ -619,15 +347,7 @@ const MakeFlow: React.FC<FlowProps> = ({
   const fetchChatExternalId = (stepId: string, userId: string, navigate: any, chatId: string, stepData: any) => {
     console.log('fetchChatExternalId called with:', { stepId, userId, chatId, stepData });
   };
-  
-  // Simple OnboardingChatBox placeholder
-  const OnboardingChatBox = ({ role, user, initialChatId, onStepStatusUpdate, scrollContainerRef }: any) => (
-    <div className="p-4 bg-gray-100 rounded-lg">
-      <div className="text-sm text-gray-600 mb-2">Chat Box Placeholder</div>
-      <div className="text-xs text-gray-500">Role: {role || 'Unknown'}</div>
-      <div className="text-xs text-gray-500">Chat ID: {initialChatId || 'None'}</div>
-    </div>
-  );
+
 
   const { flow, activeSubStep, setFlow, setActiveSubStep } =
     useContext(FlowContext)
@@ -641,55 +361,55 @@ const MakeFlow: React.FC<FlowProps> = ({
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false)
   const scrollFlowRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  // // Initialize flow, componentList and activeSubStep on first render
-  // useEffect(() => {
-  //   // Initialize default flow if none exists
-  //   if (!flow) {
-  //     const defaultFlow = getDefaultFlow()
-  //     setFlow(defaultFlow)
-  //     return
-  //   }
+  // Initialize flow, componentList and activeSubStep on first render
+  useEffect(() => {
+    // Initialize default flow if none exists
+    if (!flow) {
+      const defaultFlow = getDefaultFlow()
+      setFlow(defaultFlow)
+      return
+    }
     
-  //   const updatedComponentList = getComponentList(flow)
-  //   setComponentList(updatedComponentList)
+    const updatedComponentList = getComponentList(flow)
+    setComponentList(updatedComponentList)
     
-  //   // Set activeSubStep to first executable step if not already set
-  //   if (!activeSubStep) {
-  //     const stepDict: Record<string, Step> = {}
-  //     flow.steps.forEach((step) => {
-  //       stepDict[step.id] = step
-  //     })
+    // Set activeSubStep to first executable step if not already set
+    if (!activeSubStep) {
+      const stepDict: Record<string, Step> = {}
+      flow.steps.forEach((step) => {
+        stepDict[step.id] = step
+      })
       
-  //     const stepPropsArray: StepGeneratorData[] = updatedComponentList
-  //       .flatMap((componentData) => componentData.serialComponents)
-  //       .map((serialComponent) => serialComponent.data)
+      const stepPropsArray: StepGeneratorData[] = updatedComponentList
+        .flatMap((componentData) => componentData.serialComponents)
+        .map((serialComponent) => serialComponent.data)
       
-  //     const firstActiveSubstep = getFirstActiveSubStepInfo(
-  //       stepPropsArray,
-  //       stepDict,
-  //     )
+      const firstActiveSubstep = getFirstActiveSubStepInfo(
+        stepPropsArray,
+        stepDict,
+      )
       
-  //     if (firstActiveSubstep) {
-  //       setActiveSubStep(firstActiveSubstep)
+      if (firstActiveSubstep) {
+        setActiveSubStep(firstActiveSubstep)
         
-  //       // Expand parent step
-  //       const parentStep = flow.steps.find((step) =>
-  //         step.child_step_ids?.includes(firstActiveSubstep.id),
-  //       )
-  //       if (parentStep) {
-  //         setExpandedSteps((prev) => ({
-  //           ...prev,
-  //           [parentStep.id]: true,
-  //         }))
-  //       }
-  //     }
-  //   }
-  // }, [flow, setFlow, setActiveSubStep, activeSubStep])
-  // useEffect(() => {
-  //   if (scrollFlowRef?.current) {
-  //     scrollFlowRef.current.scrollTop = scrollFlowRef.current.scrollHeight
-  //   }
-  // }, [scrollFlowRef, activeSubStep])
+        // Expand parent step
+        const parentStep = flow.steps.find((step) =>
+          step.child_step_ids?.includes(firstActiveSubstep.id),
+        )
+        if (parentStep) {
+          setExpandedSteps((prev) => ({
+            ...prev,
+            [parentStep.id]: true,
+          }))
+        }
+      }
+    }
+  }, [flow, setFlow, setActiveSubStep, activeSubStep])
+  useEffect(() => {
+    if (scrollFlowRef?.current) {
+      scrollFlowRef.current.scrollTop = scrollFlowRef.current.scrollHeight
+    }
+  }, [scrollFlowRef, activeSubStep])
 
   const calculateFlowProgress = () => {
     if (!flow?.steps || flow.steps.length === 0) return 0
@@ -918,191 +638,89 @@ const MakeFlow: React.FC<FlowProps> = ({
       return false
     }
   }
-  // useEffect(() => {
-  //   const componentList = getComponentList(flow)
 
-  //   const firstActiveChildStep: Step | undefined = (() => {
-  //     for (const component of componentList) {
-  //       for (const serialComponent of component.serialComponents) {
-  //         const step = serialComponent.data.step
-  //         if (step.child_step_ids) {
-  //           const childStep = step.child_step_ids
-  //             .map((id) => flow?.steps.find((s) => s.id === id))
-  //             .filter(Boolean)
-  //             .find((childStep) => childStep?.status === "PENDING")
-  //           if (childStep) {
-  //             return childStep
-  //           }
-  //         }
-  //       }
-  //     }
-  //     return undefined
-  //   })()
+  useEffect(() => {
+    const fetchWelcomeMessage = async () => {
+      if (!activeSubStep) {
+        setWelcomeMessage("")
+        return
+      }
 
-  //   // Set the active substep if we found one and there isn't already one set
-  //   if (firstActiveChildStep && !activeSubStep) {
-  //     console.log("Flow useEffect: setting activeSubStep", firstActiveChildStep);
-  //     setActiveSubStep(firstActiveChildStep)
-  //   }
+      const primaryText =
+        activeSubStep.contents?.find((c) => c.content_type === "PRIMARY_TEXT")
+          ?.display || ""
 
-  //   // Fetch chat external_id when activeSubStep changes
-  //   if (firstActiveChildStep?.id && user?.id) {
-  //     fetchChatExternalId(firstActiveChildStep.id, user.id, navigate, chatId, {
-  //       name: firstActiveChildStep.name,
-  //       contents: firstActiveChildStep.contents,
-  //     })
-  //   }
+      if (!primaryText) {
+        setWelcomeMessage("")
+        return
+      }
 
-  //   if (firstActiveChildStep) {
-  //     const parentStep = flow?.steps.find((step) =>
-  //       step.child_step_ids?.includes(firstActiveChildStep.id),
-  //     )
-  //     if (parentStep) {
-  //       setExpandedSteps((prev) => ({
-  //         ...prev,
-  //         [parentStep.id]: true,
-  //       }))
-  //     }
-  //   }
-  // }, [flow, activeSubStep, setActiveSubStep, user?.id, navigate, chatId])
+      try {
+        const response = await fetch(
+          `/api/v1/chat/welcome-message?primaryText=${encodeURIComponent(primaryText)}`,
+        )
+        if (response.ok) {
+          const data = await response.json()
+          setWelcomeMessage(data.welcomeMessage || "")
+        } else {
+          setWelcomeMessage("")
+        }
+      } catch (error) {
+        console.error("Failed to fetch welcome message:", error)
+        setWelcomeMessage("")
+      }
+    }
 
-  // Add a new useEffect to handle URL updates when activeSubstep changes
-  // useEffect(() => {
-  //   if (activeSubStep?.id && user?.id) {
-  //     fetchChatExternalId(activeSubStep.id, user.id, navigate, chatId, {
-  //       name: activeSubStep.name,
-  //       contents: activeSubStep.contents,
-  //     })
-  //   }
-  // }, [activeSubStep?.id, user?.id, navigate, chatId])
-
-  // // Fetch welcome message when activeSubStep changes
-  // useEffect(() => {
-  //   const fetchWelcomeMessage = async () => {
-  //     if (!activeSubStep) {
-  //       setWelcomeMessage("")
-  //       return
-  //     }
-
-  //     const primaryText =
-  //       activeSubStep.contents?.find((c) => c.content_type === "PRIMARY_TEXT")
-  //         ?.display || ""
-
-  //     if (!primaryText) {
-  //       setWelcomeMessage("")
-  //       return
-  //     }
-
-  //     try {
-  //       const response = await fetch(
-  //         `/api/v1/chat/welcome-message?primaryText=${encodeURIComponent(primaryText)}`,
-  //       )
-  //       if (response.ok) {
-  //         const data = await response.json()
-  //         setWelcomeMessage(data.welcomeMessage || "")
-  //       } else {
-  //         setWelcomeMessage("")
-  //       }
-  //     } catch (error) {
-  //       console.error("Failed to fetch welcome message:", error)
-  //       setWelcomeMessage("")
-  //     }
-  //   }
-
-  //   fetchWelcomeMessage()
-  // }, [activeSubStep])
+    fetchWelcomeMessage()
+  }, [activeSubStep])
 
   // Handle escape key to close preview modal
-  // useEffect(() => {
-  //   const handleKeyDown = (event: KeyboardEvent) => {
-  //     if (event.key === "Escape" && isPreviewOpen) {
-  //       setIsPreviewOpen(false)
-  //     }
-  //   }
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isPreviewOpen) {
+        setIsPreviewOpen(false)
+      }
+    }
 
-  //   if (isPreviewOpen) {
-  //     document.addEventListener("keydown", handleKeyDown)
-  //     // Prevent body scroll when modal is open
-  //     document.body.style.overflow = "hidden"
-  //   } else {
-  //     document.body.style.overflow = "unset"
-  //   }
+    if (isPreviewOpen) {
+      document.addEventListener("keydown", handleKeyDown)
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = "unset"
+    }
 
-  //   return () => {
-  //     document.removeEventListener("keydown", handleKeyDown)
-  //     document.body.style.overflow = "unset"
-  //   }
-  // }, [isPreviewOpen])
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown)
+      document.body.style.overflow = "unset"
+    }
+  }, [isPreviewOpen])
 
-  const firstRootChildStep: Step | undefined = flow?.steps.find(
-    (s) =>
-      s.id ===
-      componentList[0]?.serialComponents[0]?.data.step.child_step_ids?.[0],
-  )
-
-  const primaryText =
-    activeSubStep?.contents?.find((c) => c.content_type === "PRIMARY_TEXT")
-      ?.display || ""
-
-  const secondaryText = (() => {
-    const rawText =
-      activeSubStep?.contents?.find((c) => c.content_type === "SECONDARY_TEXT")
-        ?.display || ""
-
-    return rawText.trim()
-  })()
   console.log("flowoww",flow,componentList,activeSubStep)
   return (
     <div
       id="flow-screen"
-      className="w-screen h-screen flex flex-col lg:flex-row justify-center bg-white overflow-hidden"
+      className="w-screen h-screen flex flex-col bg-white overflow-hidden"
     >
-      <div
-        ref={scrollFlowRef}
-        className="lg:w-[32%] h-full flex flex-col overflow-y-auto"
-      >
-        <div className="sticky top-0 bg-white dark:bg-gray-800 p-6 flex flex-col gap-6 z-[10]">
-          <svg
-            className="cursor-pointer"
-            onClick={() => navigate({ to: "/home" })}
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <path
-              d="M12 19L5 12M5 12L12 5M5 12H19"
-              stroke="#464D53"
-              stroke-width="2.25"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-          <div className="justify-center text-neutral-600 text-base font-semibold">
-            {project?.name || "BBPS"} Integration
-          </div>
-          <div className="self-stretch h-10 py-4 px-4 pr-3 rounded-lg border border-zinc-200 flex items-center justify-start gap-14">
-            <div className="flex-1 p-0.5 bg-slate-100 overflow-hidden rounded-full flex flex-col justify-center items-start gap-2.5">
-              <div
-                className="h-2 bg-slate-600 rounded-full"
-                style={{ width: `${calculateFlowProgress()}%` }}
-              ></div>
-            </div>
-            <div className="w-10 flex justify-end items-end gap-0.5">
-              <div className="flex items-center justify-center text-slate-600 text-base font-mono font-extrabold gap-1">
-                {calculateFlowProgress()}{" "}
-                <div className="text-slate-400 text-xs font-semibold">%</div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <Navbar
+          projectName={project?.name || "BBPS"}
+          onBackClick={() => navigate({ to: "/home" })}
+          progress={calculateFlowProgress()}
+        />
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        <div
+          ref={scrollFlowRef}
+          className="lg:w-[32%] flex flex-col overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+          style={{ height: 'calc(100vh - 64px)' }}
+        >
         {/* Step Section */}
-        <div className="w-full h-full">
-          {componentList[0]?.serialComponents &&
-          componentList[0]?.serialComponents.length > 0 ? (
+        <div className="w-full flex-1">
+          {componentList.length > 0 ? (
             <div className="w-full px-4 lg:px-6 bg-white">
               <div className="space-y-3">
-                {componentList[0].serialComponents.map((serialComponent) => {
+                {componentList.flatMap((componentData) => 
+                  componentData.serialComponents
+                ).map((serialComponent) => {
                   const barHeight =
                     serialComponent.data.isLastStep &&
                     !expandedSteps[flow?.last_step_id || ""]
@@ -1300,54 +918,21 @@ const MakeFlow: React.FC<FlowProps> = ({
           ) : null}
         </div>
       </div>
-      {/* Vertical Bar */}
-      <div className="w-px h-[100%] bg-zinc-200" />
       {/* Right Side View */}
-      <div className="relative w-full lg:w-[68%] h-full lg:h-screen flex flex-col bg-white dark:bg-[#1E1E1E]">
+      <div className="relative w-full lg:w-[68%] flex flex-col bg-white dark:bg-[#1E1E1E] overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
         {/* Scrollable Content Area */}
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto pb-40">
-          {/* Preview Doc Link feature */}
-
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto py-4 pl-[56px] pr-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {/* Active Substep Provider */}
-          <div className="w-[768px] my-10 mr-[88px] ml-[185px] p-8 bg-slate-50 rounded-2xl flex flex-col gap-2 overflow-hidden">
-            <div className="flex items-start gap-6">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                <circle cx="16" cy="16" r="16" fill="#FFE6E6" />
-                <path
-                  d="M18.3333 20.3894C18.4188 20.833 18.5299 21.1402 18.6667 21.3108C18.8034 21.4814 18.9829 21.5667 19.2051 21.5667C19.4273 21.5667 19.6496 21.4388 19.8718 21.1828C20.1111 20.9098 20.3761 20.3382 20.6667 19.468L21 18.521H21.4872L20.8462 20.3894C20.6068 21.1402 20.2735 21.7032 19.8462 22.0786C19.4188 22.454 18.9573 22.7014 18.4615 22.8208C17.9658 22.9403 17.4957 23 17.0513 23C16.1624 23 15.4103 22.8208 14.7949 22.4625C14.1966 22.0871 13.8462 21.3961 13.7436 20.3894L12.7179 11.6106C12.6496 11.167 12.5299 10.894 12.359 10.7916C12.2051 10.6722 12.0171 10.6124 11.7949 10.6124C11.6581 10.6124 11.5128 10.6551 11.359 10.7404C11.2222 10.8087 11.0769 10.9793 10.9231 11.2523C10.7692 11.5253 10.5897 11.9519 10.3846 12.532L10.0513 13.479H9.5641L10.2051 11.6106C10.4444 10.8598 10.7778 10.2968 11.2051 9.92139C11.6325 9.54601 12.1026 9.2986 12.6154 9.17916C13.1453 9.05972 13.6496 9 14.1282 9C15.0684 9 15.812 9.19622 16.359 9.58867C16.9231 9.98111 17.265 10.7745 17.3846 11.9689L18.3333 20.3894ZM18.9744 10.9707C18.6154 11.4485 18.2991 11.9775 18.0256 12.5576C17.7521 13.1377 17.5128 13.7179 17.3077 14.298C17.1197 14.8781 16.9573 15.4071 16.8205 15.8848C16.8205 15.8848 16.735 15.8848 16.5641 15.8848C16.3932 15.8678 16.3077 15.8592 16.3077 15.8592C16.3419 15.7227 16.4103 15.4668 16.5128 15.0914C16.6325 14.699 16.7863 14.2468 16.9744 13.7349C17.1795 13.206 17.4188 12.6685 17.6923 12.1225C17.9829 11.5594 18.2991 11.039 18.641 10.5612C19.1026 9.92992 19.5897 9.51188 20.1026 9.30713C20.6325 9.10238 21.1368 9 21.6154 9C22.3162 9 22.8889 9.18769 23.3333 9.56307C23.7778 9.93845 24 10.4759 24 11.1755C24 11.841 23.7863 12.387 23.359 12.8135C22.9316 13.2401 22.3761 13.4534 21.6923 13.4534C21.1624 13.4534 20.6325 13.2742 20.1026 12.9159C19.5897 12.5576 19.2137 11.9092 18.9744 10.9707ZM12.0256 21.0293C12.5726 20.2956 13.0171 19.4765 13.359 18.5722C13.7179 17.6508 13.9915 16.8318 14.1795 16.1152C14.1795 16.1152 14.265 16.1237 14.4359 16.1408C14.6068 16.1408 14.6923 16.1408 14.6923 16.1408C14.5726 16.6185 14.4017 17.1731 14.1795 17.8044C13.9573 18.4357 13.6923 19.0756 13.3846 19.7239C13.094 20.3553 12.7521 20.9269 12.359 21.4388C11.8803 22.053 11.3761 22.4625 10.8462 22.6673C10.3333 22.8891 9.83761 23 9.35897 23C8.62393 23 8.05128 22.8208 7.64103 22.4625C7.21368 22.0871 7 21.5838 7 20.9525C7 20.2017 7.23932 19.613 7.71795 19.1865C8.17949 18.7599 8.7265 18.5466 9.35897 18.5466C10.0427 18.5466 10.5983 18.777 11.0256 19.2377C11.4701 19.6813 11.8034 20.2785 12.0256 21.0293Z"
-                  fill="#FF4F4F"
-                />
-              </svg>
-              {welcomeMessage && (
-                <div className="flex-1 text-neutral-600 text-sm font-normal leading-normal tracking-tight pt-[6px]">
-                  {welcomeMessage}
-                </div>
-              )}
-            </div>
-            {welcomeMessage && <div className="h-px"></div>}
-            <div className="flex items-start gap-6">
-              <div className="w-8"></div>
-              <div className="flex-1 inline-flex justify-center items-center gap-2.5">
-                <div className="flex-1 justify-start">
-                  {activeSubStep?.id == firstRootChildStep?.id ? (
-                    <span className="text-neutral-600 text-base font-bold leading-relaxed tracking-tight">
-                      Get started:{""}
-                    </span>
-                  ) : null}
-                  <span className="text-neutral-600 text-base font-semibold leading-relaxed tracking-tight">
-                    {primaryText}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-start gap-6">
-              <div className="w-8"></div>
-              <div
-                className="flex-1 text-neutral-600 text-sm font-normal leading-normal tracking-tight prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: secondaryText }}
-              />
-            </div>
-            <div className="flex justify-center items-center w-full mt-6">
+            <div className="max-w-[670px] w-full self-stretch p-2 bg-neutral-100 rounded-[20px] shadow-[0px_4px_6px_0px_rgba(0,0,0,0.15)] outline outline-1 outline-offset-[-1px] outline-slate-200 justify-start items-start flex flex-col gap-2 overflow-hidden">
+  <div className="self-stretch px-4 pt-3 pb-2 inline-flex justify-start items-center gap-1.5">
+    <div className="justify-start text-gray-900 text-base font-semibold font-['Inter']">Getting started with integration</div>
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M5.21967 11.7803C4.92678 11.4874 4.92678 11.0126 5.21967 10.7197L9.2197 6.7197C9.5126 6.4268 9.9874 6.4268 10.2803 6.7197L14.2803 10.7197C14.5732 11.0126 14.5732 11.4874 14.2803 11.7803C13.9874 12.0732 13.5126 12.0732 13.2197 11.7803L9.75 8.3107L6.28033 11.7803C5.98744 12.0732 5.51256 12.0732 5.21967 11.7803Z" fill="black"/>
+</svg>
+  </div>
+  <div className="self-stretch flex-1 p-6 bg-gray-50 rounded-2xl flex flex-col justify-start items-start gap-8 overflow-hidden">
+    <div className="self-stretch justify-start text-gray-800 text-sm font-normal font-['Inter'] leading-snug">Welcome to the DPIP integration journey! This first step is all about getting acquainted with the system architecture. Understanding the "what" and "why" will set you up for success before we dive into the technical aspects. Let's embark on this exciting journey together!</div>
+    <div className="flex justify-center items-center w-full mt-6">
               <div
                 onClick={() => setIsPreviewOpen(true)}
                 className="w-full max-w-md cursor-pointer group transition-all duration-200 hover:shadow-lg"
@@ -1392,7 +977,6 @@ const MakeFlow: React.FC<FlowProps> = ({
                       </svg>
                     </div>
                   </div>
-
                   {/* Document Preview Content */}
                   <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden">
                     <img
@@ -1448,6 +1032,16 @@ const MakeFlow: React.FC<FlowProps> = ({
                 </div>
               </div>
             </div>
+            </div>
+            <div className="self-stretch pt-2 inline-flex justify-end items-center gap-2.5 overflow-hidden cursor-pointer">
+              <div className="flex-1 h-10 px-6 py-1.5 bg-gray-900 rounded-3xl outline outline-1 outline-offset-[-1px] flex justify-center items-center gap-1.5">
+                <svg width="15" height="14" viewBox="0 0 15 14" fill="none">
+            <path d="M12.1668 3.5L5.75016 9.91667L2.8335 7" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+                <div className="text-right justify-start text-gray-50 text-xs font-bold font-['JetBrains_Mono'] uppercase leading-none tracking-wide">Mark as DONE</div>
+              </div>
+            </div>
+          </div>
           </div>
           {/* Document Preview Modal */}
           {isPreviewOpen && (
@@ -1505,7 +1099,7 @@ const MakeFlow: React.FC<FlowProps> = ({
                 </div>
 
                 {/* Modal Content - Image Preview */}
-                <div className="relative overflow-auto max-h-[calc(90vh-160px)]">
+                <div className="relative overflow-auto max-h-[calc(90vh-160px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                   <div className="flex items-center justify-center min-h-[400px] p-4">
                     <img
                       src="https://dth95m2xtyv8v.cloudfront.net/tesseract/assets/ec-api-global/Figma%20(13).png"
@@ -1523,14 +1117,34 @@ const MakeFlow: React.FC<FlowProps> = ({
             </div>
           )}
           {/* Chat Screen OA */}
-          <div className="bg-white dark:bg-[#1E1E1E]">
-            <OnboardingChatBox
-              role={user?.role}
-              user={user}
-              initialChatId={chatId}
-              onStepStatusUpdate={changeStepStatus}
-              scrollContainerRef={scrollContainerRef}
-            />
+          <div className="pl-[56px] self-stretch pt-6 inline-flex flex-col justify-start items-start gap-1">
+            <div className="self-stretch h-9 py-1.5 inline-flex justify-between items-center w-[670px]">
+              <div className="flex-1 justify-start text-gray-800 text-sm font-['Inter'] leading-normal">What is DPIP architecture?</div>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M6.75 13.5L11.25 9L6.75 4.5" stroke="#464D53" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div data-type="solid" className="self-stretch py-0.5 flex flex-col justify-center items-center w-[670px]">
+              <div className="self-stretch h-px bg-gray-300" />
+            </div>
+            <div className="self-stretch h-9 py-1.5 inline-flex justify-between items-center w-[670px]">
+              <div className="flex-1 justify-start text-gray-800 text-sm font-['Inter'] leading-normal">How do I start integration?</div>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M6.75 13.5L11.25 9L6.75 4.5" stroke="#464D53" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div data-type="solid" className="self-stretch py-0.5 flex flex-col justify-center items-center w-[670px]">
+              <div className="self-stretch h-px bg-gray-300" />
+            </div>
+            <div className="self-stretch h-9 py-1.5 inline-flex justify-between items-center w-[670px]">
+              <div className="flex-1 justify-start text-gray-800 text-sm font-['Inter'] leading-normal">How do I access the documentation?</div>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M6.75 13.5L11.25 9L6.75 4.5" stroke="#464D53" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div className="self-stretch h-10 py-1.5 bg-white rounded-3xl outline outline-1 outline-offset-[-1px] outline-gray-300 inline-flex justify-center items-center gap-1.5 w-[670px]">
+              <div className="text-right justify-start text-gray-800 text-sm font-bold font-['JetBrains_Mono'] uppercase tracking-wide">Ask another question</div>
+            </div>
           </div>
         </div>
       </div>

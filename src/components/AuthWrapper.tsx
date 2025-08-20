@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { FlowContext } from '../context/FlowProvider';
-import { getDefaultFlow } from './Flow';
+import { getDefaultFlow } from '../constants/Default';
 
 export interface UserDetail {
   id: string;
