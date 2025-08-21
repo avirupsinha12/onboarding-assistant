@@ -1,5 +1,24 @@
 import { Flow, Step } from "../types/Types"
 
+export const defaultStep: Step = {
+  id: "",
+  type: "DEFAULT",
+  blocked_by_step_ids: undefined,
+  blocking_step_ids: undefined,
+  parent_step_id: undefined,
+  child_step_ids: undefined,
+  status: "NOTHING",
+  template_step_id: undefined,
+  assignee_id: undefined,
+  unblocked_at: undefined,
+  completed_by: undefined,
+  contents: [],
+  fall_back_step_id: undefined,
+  time_needed: undefined,
+  name: undefined,
+  position: undefined,
+}
+
 export function getDefaultFlow(): Flow {
   const rootStepId = "root-step-1";
   const setupStepId = "setup-step-1";
@@ -16,12 +35,12 @@ export function getDefaultFlow(): Flow {
   const deploymentSubStep1 = "deployment-substep-1";
 
   const defaultSteps: Step[] = [
-    // Root step
     {
       id: rootStepId,
       type: "ROOT",
       status: "DONE",
       blocking_step_ids: [setupStepId],
+      child_step_ids: [setupSubStep1],
       contents: [
         {
           id: "content-root-1",
@@ -40,7 +59,6 @@ export function getDefaultFlow(): Flow {
       position: 1,
       time_needed: "00:05:00"
     },
-    // Setup step
     {
       id: setupStepId,
       type: "MAIN",
@@ -60,7 +78,6 @@ export function getDefaultFlow(): Flow {
       position: 2,
       time_needed: "00:15:00"
     },
-    // Setup substeps
     {
       id: setupSubStep1,
       type: "SUB",
@@ -107,7 +124,6 @@ export function getDefaultFlow(): Flow {
       position: 2,
       time_needed: "00:10:00"
     },
-    // Configuration step
     {
       id: configStepId,
       type: "MAIN",
@@ -127,7 +143,6 @@ export function getDefaultFlow(): Flow {
       position: 3,
       time_needed: "00:20:00"
     },
-    // Config substeps
     {
       id: configSubStep1,
       type: "SUB",
@@ -174,7 +189,6 @@ export function getDefaultFlow(): Flow {
       position: 2,
       time_needed: "00:10:00"
     },
-    // Testing step
     {
       id: testingStepId,
       type: "MAIN",
@@ -194,7 +208,6 @@ export function getDefaultFlow(): Flow {
       position: 4,
       time_needed: "00:25:00"
     },
-    // Testing substep
     {
       id: testingSubStep1,
       type: "SUB",
@@ -218,7 +231,6 @@ export function getDefaultFlow(): Flow {
       position: 1,
       time_needed: "00:25:00"
     },
-    // Deployment step
     {
       id: lastStepId,
       type: "MAIN",
@@ -237,7 +249,6 @@ export function getDefaultFlow(): Flow {
       position: 5,
       time_needed: "00:10:00"
     },
-    // Deployment substep
     {
       id: deploymentSubStep1,
       type: "SUB",

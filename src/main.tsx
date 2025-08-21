@@ -5,6 +5,7 @@ import AuthWrapper, { UserDetail } from './components/AuthWrapper';
 import Flow from './components/Flow';
 import { fetchFlowUrl, createFlowUrl } from './api/ApiEndpoints';
 import { Flow as FlowType } from './types/Types';
+import { getDefaultFlow } from './constants/Default';
 
 const App = () => {
   const [flowData, setFlowData] = useState<FlowType | null>(null);
@@ -144,8 +145,9 @@ const App = () => {
         {(user: UserDetail) => (
           <Flow
             title={flowData?.scenario}
-            steps={flowData?.steps.map(step => step)}
+            flow={flowData || getDefaultFlow()}
             user={user}
+            className="w-screen h-screen flex flex-col bg-white overflow-hidden"
           />
         )}
       </AuthWrapper>

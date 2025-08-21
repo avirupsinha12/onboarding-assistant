@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect, useRef } from "react"
 import { FlowContext } from "../context/FlowProvider"
+import { getComponentList, getFirstActiveSubStepInfo } from "../utility/FlowUtils";
 import { changeStepStatusUrl, fetchFlowUrl } from "../api/ApiEndpoints"
 import { CircularProgress } from "./CircularProgress";
 import Navbar from "./NavBar";
@@ -7,322 +8,41 @@ import { getDefaultFlow } from "../constants/Default";
 import { 
   Status, 
   Step, 
-  Flow, 
   FlowProps, 
   StepGeneratorData, 
-  SerialComponents, 
   ComponentListData, 
   ChangeStepStatusObject, 
   ChangeStepStatusResponse 
 } from "../types/Types";
 
-function padWithZero(value: number): string {
-  if (value < 10) {
-    return "0" + value.toString()
-  } else {
-    return value.toString()
-  }
-}
-
-function parseTime(time: string): [number, number, number] {
-  const regex = /^([0-9]+):([0-5][0-9]):([0-5][0-9])$/
-  const result = regex.exec(time)
-
-  const getRegexRes = (
-    regexResult: RegExpExecArray | null,
-    index: number,
-  ): number | undefined => {
-    if (!regexResult || !regexResult[index]) {
-      return undefined
-    }
-    const parsed = parseInt(regexResult[index], 10)
-    return isNaN(parsed) ? undefined : parsed
-  }
-
-  if (result) {
-    const hour = getRegexRes(result, 1)
-    const min = getRegexRes(result, 2)
-    const sec = getRegexRes(result, 3)
-
-    if (hour !== undefined && min !== undefined && sec !== undefined) {
-      return [hour, min, sec]
-    }
-  }
-
-  return [0, 0, 0]
-}
-
-export function isExecutable(status: Status): boolean {
-  return status === "PENDING" || status === "INCOMPLETE" || status === "OVERDUE"
-}
-
-function customCompare(a: number | undefined, b: number | undefined): number {
-  if (a === undefined && b === undefined) return 0
-  if (a === undefined) return 1
-  if (b === undefined) return -1
-  return a - b
-}
-
-export function getFirstActiveSubStepInfo(
-  stepPropsArray: StepGeneratorData[],
-  stepDict: Record<string, Step>,
-): Step | undefined {
-  const activeStep = stepPropsArray.find((stepProps) =>
-    isExecutable(stepProps.step.status),
-  )?.step
-
-  if (!activeStep) return undefined
-
-  const childSteps = activeStep.child_step_ids
-    ?.map((id) => stepDict[id])
-    .filter(Boolean) || [activeStep]
-
-  return childSteps
-    .sort((a, b) => customCompare(a.position, b.position))
-    .find((step) => isExecutable(step.status))
-}
-
-export function addTime(tB: string, tA: string): string {
-  const matchA = parseTime(tA)
-  const matchB = parseTime(tB)
-
-  const hrSum = matchA[0] + matchB[0]
-  const minSum = matchA[1] + matchB[1]
-  const secSum = matchA[2] + matchB[2]
-
-  let carry = 0
-  const totalSec = secSum % 60
-  carry = Math.floor(secSum / 60)
-
-  const totalMin = (minSum + carry) % 60
-  carry = Math.floor((minSum + carry) / 60)
-
-  const totalHr = hrSum + carry
-
-  return (
-    padWithZero(totalHr) +
-    ":" +
-    padWithZero(totalMin) +
-    ":" +
-    padWithZero(totalSec)
-  )
-}
-
-export function fillConnectedChildSteps(
-  childStepIds: string[],
-  connectedStepList: string[],
-  stepDict: Record<string, Step>,
-): void {
-  connectedStepList.push(...childStepIds)
-
-  childStepIds.forEach((childStepId) => {
-    const childStep = stepDict[childStepId]
-    if (childStep?.child_step_ids) {
-      fillConnectedChildSteps(
-        childStep.child_step_ids,
-        connectedStepList,
-        stepDict,
-      )
-    }
-  })
-}
-
-const defaultStep: Step = {
-  id: "",
-  type: "DEFAULT",
-  blocked_by_step_ids: undefined,
-  blocking_step_ids: undefined,
-  parent_step_id: undefined,
-  child_step_ids: undefined,
-  status: "NOTHING",
-  template_step_id: undefined,
-  assignee_id: undefined,
-  unblocked_at: undefined,
-  completed_by: undefined,
-  contents: [],
-  fall_back_step_id: undefined,
-  time_needed: undefined,
-  name: undefined,
-  position: undefined,
-}
-
-export function flowBFS(
-  stepDict: Record<string, Step>,
-  flow: Flow,
-): [ComponentListData[], number, number, string] {
-  const rootStep = stepDict[flow.root_step_id] || defaultStep
-  const traversedArray = [rootStep.id]
-  const componentList: ComponentListData[] = []
-  const connectedStepList = [rootStep.id]
-
-  let offSet = 0
-  let stepNumber = 1
-  let doneCount = rootStep.status === "DONE" ? 1 : 0
-  let serialSteps: SerialComponents[] = [
-    {
-      type: "Step",
-      data: {
-        step: rootStep,
-        stepNumber,
-        isRootStep: true,
-        isLastStep: false,
-        isConnectedStep: true,
-      },
-    },
-  ]
-  let etaSum = "00:00:00"
-  let queue = [rootStep]
-
-  while (queue.length > 0) {
-    const newBlockingStepsArray: Step[] = []
-
-    queue.forEach((step) => {
-      if (step.time_needed) {
-        etaSum = addTime(etaSum, step.time_needed)
-      }
-      if (step.child_step_ids) {
-        fillConnectedChildSteps(
-          step.child_step_ids,
-          connectedStepList,
-          stepDict,
-        )
-        step.child_step_ids.forEach((id) => {
-          const childStep = stepDict[id]
-          if (childStep?.time_needed) {
-            etaSum = addTime(etaSum, childStep.time_needed)
-          }
-        })
-      }
-
-      const isParallelBlockingLevel = (step.blocking_step_ids || []).length > 1
-
-      if (isParallelBlockingLevel) {
-        componentList.push({
-          level: componentList.length,
-          marginLeft: offSet,
-          serialComponents: [...serialSteps],
-          className: "flex",
-        })
-        offSet += Math.floor(serialSteps.length / 2 + 1) * 520
-        serialSteps = []
-      }
-
-      const blockingSteps = step.blocking_step_ids || []
-      blockingSteps.forEach((blockingStepId) => {
-        const blockingStep = stepDict[blockingStepId] || defaultStep
-
-        if (!traversedArray.includes(blockingStepId)) {
-          stepNumber++
-          traversedArray.push(blockingStepId)
-          doneCount += blockingStep.status === "DONE" ? 1 : 0
-
-          serialSteps.push({
-            type: "Step",
-            data: {
-              step: blockingStep,
-              stepNumber,
-              isRootStep: false,
-              isLastStep: blockingStepId === flow.last_step_id,
-              isConnectedStep: true,
-            },
-          })
-
-          connectedStepList.push(blockingStep.id)
-          newBlockingStepsArray.push(blockingStep)
-        }
-      })
-
-      if (isParallelBlockingLevel) {
-        componentList.push({
-          level: componentList.length,
-          marginLeft: offSet - 180,
-          serialComponents: [...serialSteps],
-          className: "flex flex-col justify-center",
-        })
-        offSet += 520 - 180
-        serialSteps = []
-        return
-      }
-    })
-
-    queue = newBlockingStepsArray
-  }
-
-  componentList.push({
-    level: componentList.length,
-    marginLeft: offSet,
-    serialComponents: [...serialSteps],
-    className: "flex flex-row gap-[146px]",
-  })
-
-  return [componentList, stepNumber, doneCount, etaSum]
-}
-
-export function getComponentList(flow: Flow) {
-  const stepDict: Record<string, Step> = {}
-  if (flow?.steps) {
-    flow.steps.forEach((step) => {
-      stepDict[step.id] = {
-        id: step.id,
-        type: step.type,
-        blocked_by_step_ids: step.blocked_by_step_ids,
-        blocking_step_ids: step.blocking_step_ids,
-        parent_step_id: step.parent_step_id,
-        child_step_ids: step.child_step_ids,
-        status: step.status,
-        assignee_id: step.assignee_id,
-        template_step_id: step.template_step_id,
-        unblocked_at: step.unblocked_at,
-        completed_by: step.completed_by,
-        contents: step.contents,
-        fall_back_step_id: step.fall_back_step_id,
-        time_needed: step.time_needed,
-        name: step.name,
-        position: step.position,
-      }
-    })
-  }
-  const [componentList] = flowBFS(stepDict, flow)
-  return componentList
-}
 
 const MakeFlow: React.FC<FlowProps> = ({
   title = "Welcome to Flow",
-  steps,
-  className = "",
+  flow,
+  className,
   user
 }) => {
-  const project = { name: "DPIP Integration" };
-  const getProjectScenario = (projectName?: string) => {
-    switch (projectName) {
-      case "BBPS":
-        return "bbps-onboarding";
-      case "NEXUS":
-        return "nexus-integration";
-      case "DPIP":
-        return "dpip-setup";
-      default:
-        return "default-scenario";
-    }
-  };
-
-  const { flow, activeSubStep, setFlow, setActiveSubStep } = useContext(FlowContext)
+  const { activeSubStep, setFlow, setActiveSubStep } = useContext(FlowContext)
   const [_, setChangeStepStatusError] = useState("")
   const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({})
   const [componentList, setComponentList] = useState<ComponentListData[]>([])
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false)
   const scrollFlowRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  
+  const totalSerialSteps = flow ? getComponentList(flow) : []
+  const totalParentStepsCount =
+    totalSerialSteps[0]?.serialComponents?.length || 0
+  const totalParentStepsDoneCount =
+    totalSerialSteps[0]?.serialComponents?.filter(
+      (step) => step.data.step.status === "DONE",
+    ).length || 0
+
   // Initialize flow, componentList and activeSubStep on first render
   useEffect(() => {
-    // Initialize default flow if none exists
     if (!flow) {
-      const defaultFlow = getDefaultFlow()
-      setFlow(defaultFlow)
+      setFlow(flow || getDefaultFlow())
       return
     }
-    
     const updatedComponentList = getComponentList(flow)
     setComponentList(updatedComponentList)
     
@@ -422,7 +142,7 @@ const MakeFlow: React.FC<FlowProps> = ({
           BBPS: "bbps",
         }
 
-        const merchantId = projectMerchantMap[project?.name || "BBPS"]
+        const merchantId = projectMerchantMap[title || "BBPS"]
             const flowResponse = await fetch(fetchFlowUrl, {
               method: "POST",
               headers: {
@@ -433,7 +153,7 @@ const MakeFlow: React.FC<FlowProps> = ({
                 merchant_id: merchantId,
                 product_name: "PP",
                 merchant_type: "F1",
-                scenario: getProjectScenario(project?.name),
+                scenario: "onboarding",
               }),
             })
 
@@ -464,7 +184,7 @@ const MakeFlow: React.FC<FlowProps> = ({
         request_array: isSecondLastStepsLastSubStep
           ? [request].concat(requestLastStepSubsteps)
           : [request],
-        flow_id: currentFlowId, // Use fresh flow_id instead of potentially stale one
+        flow_id: currentFlowId,
       }
 
       const changeStepStatusResponse = await fetch(
@@ -558,14 +278,12 @@ const MakeFlow: React.FC<FlowProps> = ({
   }, [isPreviewOpen])
   
   return (
-    <div
-      id="flow-screen"
-      className="w-screen h-screen flex flex-col bg-white overflow-hidden"
-    >
+    <div id="flow-screen" className={className}>
       <Navbar
-        projectName={project?.name || "Ingestion Module"}
+        projectName={title || "Ingestion Module"}
         progress={calculateFlowProgress()}
-        parentSteps={flow?.steps.map((step) => step) || []}
+        parentStepsCount={totalParentStepsCount}
+        parentStepsDoneCount={totalParentStepsDoneCount}
       />
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <div
@@ -1045,7 +763,7 @@ const MakeFlow: React.FC<FlowProps> = ({
                   />
                 </svg>
               </div>
-              <div className="self-stretch h-10 py-1.5 bg-white rounded-3xl outline outline-1 outline-offset-[-1px] outline-gray-300 inline-flex justify-center items-center gap-1.5 w-[670px] cursor-pointer">
+              <div onClick={() => {}} className="self-stretch h-10 py-1.5 bg-white rounded-3xl outline outline-1 outline-offset-[-1px] outline-gray-300 inline-flex justify-center items-center gap-1.5 w-[670px] cursor-pointer">
                 <div className="text-right justify-start text-gray-800 text-sm font-bold font-['JetBrains_Mono'] uppercase tracking-wide">
                   Ask another question
                 </div>

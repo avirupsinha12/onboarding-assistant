@@ -60,7 +60,7 @@ export interface FlowContextProps {
 
 export interface FlowProps {
   title?: string;
-  steps?: Step[];
+  flow?: Flow;
   className?: string;
   user?: UserDetail;
 }
