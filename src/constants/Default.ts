@@ -1,4 +1,4 @@
-import { Flow, Step } from "../context/FlowProvider"
+import { Flow, Step } from "../types/Types"
 
 export function getDefaultFlow(): Flow {
   const rootStepId = "root-step-1";

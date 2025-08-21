@@ -1,15 +1,7 @@
-const turingQAUrl = "http://localhost:8088"
-// "http://localhost:8088"
+const boseBaseUrl = "http://localhost:8088"
 
-// Api Endpoints Turing
+export const fetchFlowUrl = boseBaseUrl + "/merchant/flow/fetch"
 
-export const fetchContentUrl = turingQAUrl + "/content/fetch"
+export const createFlowUrl = boseBaseUrl + "/merchant/flow/create"
 
-export const fetchFlowUrl = (baseUrl: string) =>
-  baseUrl + "/merchant/flow/fetch"
-
-export const createFlowUrl = (baseUrl: string) =>
-  baseUrl + "/merchant/flow/create"
-
-export const changeStepStatusUrl = (baseUrl: string) =>
-  baseUrl + "/v2/changestepstatus"
+export const changeStepStatusUrl = boseBaseUrl + "/v2/changestepstatus"
